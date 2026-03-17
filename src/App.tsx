@@ -1,12 +1,12 @@
 /* src/App.tsx */
 import { useState, useMemo } from 'react';
 import { 
-  LayoutDashboard, Settings, Bell, RefreshCw, Zap, TrendingUp, Users, Activity, LogOut, 
-  ChevronRight, Monitor, User, Clock, Package, DollarSign, Database, CreditCard, 
-  Calendar, Layers, MessageSquare, Search
+  LayoutDashboard, RefreshCw, Zap, Users, Activity, 
+  ChevronRight, Monitor, Clock, Package, DollarSign, Database, CreditCard, 
+  Calendar, Layers, MessageSquare, Search, Info, Terminal
 } from 'lucide-react';
 import RoomCard from './components/RoomCard';
-import type { Room, RoomStatus } from './lib/supabase';
+import type { Room } from './lib/supabase';
 import { cn } from './lib/utils';
 
 // Mock Data Generation for ERP Experience (~40 Rooms)
@@ -128,13 +128,13 @@ function App() {
           {selectedRoom && selectedRoom.status === 'USING' ? (
             <div className="animate-fadeIn">
                <div className="flex items-center gap-4 mb-6">
-                 <div className="w-16 h-16 rounded-lg bg-zinc-800 border border-zinc-700 p-1">
-                   <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${selectedRoom.id}`} alt="User" />
+                 <div className="w-14 h-14 rounded-lg bg-zinc-800 border border-zinc-700 p-1 flex-shrink-0">
+                   <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${selectedRoom.id}`} alt="User" className="w-full h-full object-cover rounded-md" />
                  </div>
-                 <div className="flex-1">
-                   <div className="text-xs text-zinc-500 mb-1">Room {selectedRoom.room_number}</div>
-                   <div className="text-xl font-bold tracking-tight text-white italic">PLAYIT_GUEST_{selectedRoom.id}</div>
-                   <div className="text-[10px] text-cyan-400 uppercase font-black tracking-widest">Premium Member</div>
+                 <div className="flex-1 min-w-0">
+                   <div className="text-[10px] text-zinc-500 mb-0.5">Room {selectedRoom.room_number}</div>
+                   <div className="text-sm font-bold tracking-tight text-white italic truncate">PLAYIT_GUEST_{selectedRoom.id}</div>
+                   <div className="text-[9px] text-cyan-400 uppercase font-black tracking-widest">Premium Member</div>
                  </div>
                </div>
 
