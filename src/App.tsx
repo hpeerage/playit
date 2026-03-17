@@ -43,7 +43,7 @@ function App() {
       <div 
         className="fixed inset-0 z-0 opacity-20 pointer-events-none grayscale-[0.8]"
         style={{ 
-          backgroundImage: `url('/playit_dashboard_bg.png')`,
+          backgroundImage: `url('playit_dashboard_bg.png')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           filter: 'blur(2px)'
