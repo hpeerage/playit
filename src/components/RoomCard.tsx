@@ -2,7 +2,7 @@
 import React from 'react';
 import { Monitor, User, LogIn, LogOut } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { RoomStatus } from '../lib/supabase';
+import type { RoomStatus } from '../lib/supabase';
 
 interface RoomCardProps {
   roomNumber: string;

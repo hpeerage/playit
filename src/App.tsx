@@ -1,8 +1,8 @@
 /* src/App.tsx */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { LayoutDashboard, Settings, Bell, RefreshCw, Zap } from 'lucide-react';
 import RoomCard from './components/RoomCard';
-import { Room, RoomStatus } from './lib/supabase';
+import type { Room } from './lib/supabase';
 
 // Mock Data (301호 ~ 305호)
 const INITIAL_ROOMS: Room[] = [
