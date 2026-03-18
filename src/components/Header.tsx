@@ -1,6 +1,6 @@
 /* src/components/Header.tsx */
 import React from 'react';
-import { Zap, User as UserIcon, LogOut } from 'lucide-react';
+import { User as UserIcon, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   stats: {
@@ -16,9 +16,16 @@ const Header: React.FC<HeaderProps> = ({ stats, currentTime }) => {
   return (
     <header className="header-premium h-[70px] bg-slate-950 border-b border-white/5 flex items-center px-[40px] justify-between z-[1000] relative">
       {/* Logo */}
-      <div className="flex items-center gap-3 cursor-pointer group">
-         <Zap className="w-6 h-6 text-purple-400 fill-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
-         <span className="font-black text-2xl tracking-tighter uppercase italic text-purple-400">Playit</span>
+      <div className="flex items-center gap-3 cursor-pointer group px-2 py-1.5 rounded-xl hover:bg-white/5 transition-all">
+         <img 
+           src="/playit-platform/logo.svg" 
+           alt="Playit Logo" 
+           className="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(139,92,246,0.5)] group-hover:drop-shadow-[0_0_12px_rgba(139,92,246,0.8)] transition-all duration-300" 
+         />
+         <div className="flex flex-col">
+            <span className="font-black text-xl tracking-tighter uppercase italic text-white leading-none">Playit</span>
+            <span className="text-[10px] font-bold text-purple-500 uppercase tracking-[0.2em]">Platform</span>
+         </div>
       </div>
 
       {/* Live Summary Chips (Ant Design Style) */}

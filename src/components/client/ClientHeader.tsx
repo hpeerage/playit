@@ -13,12 +13,21 @@ const ClientHeader = () => {
   return (
     <header className="flex justify-between items-start p-10 select-none">
       {/* Left: Branding / Station Info */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse shadow-[0_0_10px_#a855f7]" />
-          <span className="text-[14px] font-black uppercase tracking-[0.4em] text-slate-400">Station 24</span>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-4">
+          <img 
+            src="/playit-platform/logo.svg" 
+            alt="Playit Logo" 
+            className="w-16 h-16 object-contain drop-shadow-[0_0_15px_rgba(168,85,247,0.6)]" 
+          />
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
+              <span className="text-[12px] font-black uppercase tracking-[0.3em] text-slate-400">Station 24</span>
+            </div>
+            <h1 className="text-4xl font-black italic text-white tracking-tighter uppercase">PLAYIT <span className="text-purple-500">CLIENT</span></h1>
+          </div>
         </div>
-        <h1 className="text-3xl font-black italic text-white tracking-tighter">PLAYIT <span className="text-purple-500">LAUNCHER</span></h1>
       </div>
 
       {/* Center/Right: Giant Stats */}
