@@ -1,6 +1,6 @@
 /* src/components/Header.tsx */
 import React from 'react';
-import { User as UserIcon, LogOut } from 'lucide-react';
+import { User as UserIcon, LogOut, Bell } from 'lucide-react';
 
 interface HeaderProps {
   stats: {
@@ -10,9 +10,11 @@ interface HeaderProps {
     pendingOrders: number;
   };
   currentTime: Date;
+  unreadCount?: number;
+  onBellClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ stats, currentTime }) => {
+const Header: React.FC<HeaderProps> = ({ stats, currentTime, unreadCount, onBellClick }) => {
   return (
     <header className="header-premium h-[70px] bg-slate-950 border-b border-white/5 flex items-center px-[40px] justify-between z-[1000] relative">
       {/* Logo */}
@@ -57,6 +59,20 @@ const Header: React.FC<HeaderProps> = ({ stats, currentTime }) => {
             <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">실시간 동기화</span>
          </div>
          
+         <div className="flex items-center gap-2">
+            <button 
+              onClick={onBellClick}
+              className="relative p-2.5 hover:bg-white/5 rounded-xl border border-transparent hover:border-white/10 transition-all group"
+            >
+              <Bell className="w-5 h-5 text-slate-400 group-hover:text-purple-400 transition-colors" />
+              {unreadCount && unreadCount > 0 ? (
+                <span className="absolute top-2 right-2 w-4 h-4 bg-red-500 border-2 border-slate-950 rounded-full text-[8px] font-black flex items-center justify-center text-white scale-110 animate-in zoom-in-50">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              ) : null}
+            </button>
+         </div>
+
          <div className="h-8 w-[1px] bg-white/10" />
 
          <div className="flex items-center gap-4">

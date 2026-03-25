@@ -20,6 +20,8 @@ const AdminDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [pendingOrders, setPendingOrders] = useState(3);
   const [filter, setFilter] = useState('All');
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [recentNotifications, setRecentNotifications] = useState<any[]>([]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -79,6 +81,22 @@ const AdminDashboard = () => {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  // Fetch recent notifications (History)
+  const fetchRecentNotifications = async () => {
+    const { data } = await supabase
+      .from('notifications')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    if (data) setRecentNotifications(data);
+  };
+
+  useEffect(() => {
+    if (isHistoryOpen) {
+      fetchRecentNotifications();
+    }
+  }, [isHistoryOpen, notifications]);
 
   const dismissNotification = async (id: string) => {
     await supabase.from('notifications').update({ is_read: true }).eq('id', id);
@@ -281,8 +299,13 @@ const AdminDashboard = () => {
     <div className="flex h-screen bg-[#020617] text-slate-100 overflow-hidden select-none relative font-sans">
       <GNB activeMenu={activeMenu} setActiveMenu={setActiveMenu} items={navItems} />
 
-      <div className="flex-1 flex flex-col min-w-0 ml-[80px] relative">
-        <Header stats={dashStats} currentTime={currentTime} />
+      <div className="flex-1 flex flex-col min-w-0 ml-[80px] relative transition-all duration-500">
+        <Header 
+          stats={dashStats} 
+          currentTime={currentTime} 
+          unreadCount={notifications.length}
+          onBellClick={() => setIsHistoryOpen(!isHistoryOpen)}
+        />
 
         <main className="flex-1 flex overflow-hidden relative">
           {renderMainContent()}
@@ -308,6 +331,89 @@ const AdminDashboard = () => {
               Terminal AZ-01-SECURE
            </div>
         </footer>
+      </div>
+
+      {/* Notification Center (Right Sidebar) */}
+      <div className={cn(
+        "fixed inset-y-0 right-0 w-[400px] bg-slate-950 border-l border-white/5 z-[3000] shadow-[0_0_100px_rgba(0,0,0,0.5)] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] transform",
+        isHistoryOpen ? "translate-x-0" : "translate-x-full"
+      )}>
+        <div className="flex flex-col h-full">
+           <div className="h-[70px] px-8 flex items-center justify-between border-b border-white/5">
+              <div className="flex items-center gap-3">
+                 <Bell className="w-5 h-5 text-purple-500" />
+                 <h2 className="text-lg font-black italic text-white uppercase tracking-tighter">Notification Center</h2>
+              </div>
+              <button 
+                onClick={() => setIsHistoryOpen(false)}
+                className="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-slate-500 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+           </div>
+           
+           <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4">
+              {recentNotifications.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-slate-600 gap-4 opacity-50">
+                   <Bell className="w-12 h-12" />
+                   <span className="text-[10px] font-black uppercase tracking-[0.3em]">No Alert History</span>
+                </div>
+              ) : (
+                recentNotifications.map((n) => (
+                  <div 
+                    key={n.id} 
+                    className={cn(
+                      "p-5 rounded-2xl border transition-all duration-300 group/item relative",
+                      n.is_read 
+                        ? "bg-slate-900/30 border-white/5 opacity-60" 
+                        : "bg-purple-500/5 border-purple-500/20 shadow-[0_10px_30px_rgba(139,92,246,0.05)]"
+                    )}
+                  >
+                    {!n.is_read && (
+                      <div className="absolute top-5 right-5 w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(139,92,246,0.5)]" />
+                    )}
+                    <div className="flex flex-col gap-2">
+                       <div className="flex items-center justify-between">
+                          <span className={cn(
+                            "text-[10px] font-black uppercase tracking-widest",
+                            n.type === 'Call' ? "text-red-400" : "text-amber-400"
+                          )}>
+                            {n.type || 'Alert'} Message
+                          </span>
+                          <span className="text-[9px] font-bold text-slate-600 tabular-nums">
+                            {new Date(n.created_at).toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                       </div>
+                       <p className="text-sm font-bold text-slate-300 leading-relaxed pr-8">
+                         {n.message}
+                       </p>
+                       <div className="flex items-center justify-between mt-2 pt-3 border-t border-white/5 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                          {!n.is_read && (
+                            <button 
+                              onClick={() => dismissNotification(n.id)}
+                              className="text-[9px] font-black text-purple-400 uppercase tracking-widest hover:text-purple-300"
+                            >
+                              Mark as Read
+                            </button>
+                          )}
+                       </div>
+                    </div>
+                  </div>
+                ))
+              )}
+           </div>
+
+           {notifications.length > 0 && (
+             <div className="p-6 border-t border-white/5 bg-slate-900/20">
+                <button 
+                  onClick={dismissAllNotifications}
+                  className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all"
+                >
+                  Mark All as Read
+                </button>
+             </div>
+           )}
+        </div>
       </div>
 
       {/* Admin Notifications Overlay */}
