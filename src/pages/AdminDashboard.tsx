@@ -7,10 +7,11 @@ import MemberListView from '../components/admin/MemberListView';
 import OrderQueueView from '../components/admin/OrderQueueView';
 import SeatMapView from '../components/admin/SeatMapView';
 import ReportsView from '../components/admin/ReportsView';
+import ProductManagementView from '../components/admin/ProductManagementView';
 import { useRooms } from '../hooks/useRooms';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
-import { LayoutDashboard, Users, ShoppingBag, Monitor, BarChart3, Shield, Settings, Bell, Grid, Map as MapIcon, X } from 'lucide-react';
+import { LayoutDashboard, Users, ShoppingBag, Monitor, BarChart3, Shield, Settings, Bell, Grid, Map as MapIcon, X, Package } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { rooms, stats, loading, updateRoomStatus, checkoutRoom } = useRooms();
@@ -127,7 +128,7 @@ const AdminDashboard = () => {
     { id: 'orders', icon: ShoppingBag, label: 'Orders' },
     { id: 'reports', icon: BarChart3, label: 'Reports' },
     { id: 'pcstatus', icon: Monitor, label: 'PC Status' },
-    { id: 'inventory', icon: Shield, label: 'Security' },
+    { id: 'inventory', icon: Package, label: 'Inventory' },
     { id: 'settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -182,6 +183,8 @@ const AdminDashboard = () => {
         return <OrderQueueView />;
       case 'reports':
         return <ReportsView />;
+      case 'inventory':
+        return <ProductManagementView />;
       case 'dashboard':
       case 'pcstatus':
       default:

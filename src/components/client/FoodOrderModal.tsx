@@ -1,6 +1,6 @@
 /* src/components/client/FoodOrderModal.tsx */
-import React, { useState } from 'react';
-import { X, ShoppingBasket, Plus, Minus, CheckCircle2, UtensilsCrossed, Coffee, Cookie } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, ShoppingBasket, Plus, Minus, CheckCircle2, UtensilsCrossed, Coffee, Cookie, Loader2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { supabase } from '../../lib/supabase';
 
@@ -15,27 +15,36 @@ const CATEGORIES = [
   { id: 'snack', label: 'Snacks', icon: Cookie },
 ];
 
-const MENU_ITEMS = [
-  { id: 1, category: 'meal', name: 'Premium PC-Cafe Ramen', price: 5500, image: '🍜' },
-  { id: 2, category: 'meal', name: 'Kimchi Fried Rice', price: 7000, image: '🍳' },
-  { id: 3, category: 'drink', name: 'Iced Americano', price: 3500, image: '☕' },
-  { id: 4, category: 'drink', name: 'Lemonade', price: 4000, image: '🍋' },
-  { id: 5, category: 'snack', name: 'Honey Butter Chips', price: 2500, image: '🍯' },
-  { id: 6, category: 'snack', name: 'Spicy Rice Cakes', price: 4500, image: '🥘' },
-];
-
 const FoodOrderModal: React.FC<FoodOrderModalProps> = ({ isOpen, onClose }) => {
   const [activeCategory, setActiveCategory] = useState('meal');
-  const [cart, setCart] = useState<{[key: number]: number}>({});
+  const [cart, setCart] = useState<{[key: string]: number}>({});
   const [ordered, setOrdered] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch products from database
+  useEffect(() => {
+    if (isOpen) {
+      const fetchProducts = async () => {
+        setLoading(true);
+        const { data } = await supabase
+          .from('products')
+          .select('*')
+          .eq('is_available', true); // Only show available items
+        if (data) setProducts(data);
+        setLoading(false);
+      };
+      fetchProducts();
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const addToCart = (id: number) => {
+  const addToCart = (id: string) => {
     setCart(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
   };
 
-  const removeFromCart = (id: number) => {
+  const removeFromCart = (id: string) => {
     setCart(prev => {
       const newCart = { ...prev };
       if (newCart[id] > 1) newCart[id] -= 1;
@@ -45,7 +54,7 @@ const FoodOrderModal: React.FC<FoodOrderModalProps> = ({ isOpen, onClose }) => {
   };
 
   const totalAmount = Object.entries(cart).reduce((sum, [id, qty]) => {
-    const item = MENU_ITEMS.find(m => m.id === Number(id));
+    const item = products.find(m => m.id === id);
     return sum + (item?.price || 0) * qty;
   }, 0);
 
@@ -60,7 +69,7 @@ const FoodOrderModal: React.FC<FoodOrderModalProps> = ({ isOpen, onClose }) => {
       const roomId = rooms?.id;
 
       const orderItems = Object.entries(cart).map(([id, qty]) => {
-        const item = MENU_ITEMS.find(m => m.id === Number(id));
+        const item = products.find(m => m.id === id);
         return {
           product_id: item?.id,
           name: item?.name,
@@ -127,9 +136,18 @@ const FoodOrderModal: React.FC<FoodOrderModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           <div className="flex-1 overflow-y-auto p-8 pt-0 grid grid-cols-2 lg:grid-cols-3 gap-6 custom-scrollbar">
-            {MENU_ITEMS.filter(item => item.category === activeCategory).map((item) => (
+            {loading ? (
+              <div className="col-span-full h-full flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+              </div>
+            ) : products.filter(item => item.category === activeCategory).length === 0 ? (
+              <div className="col-span-full h-full flex flex-col items-center justify-center opacity-20">
+                <UtensilsCrossed className="w-12 h-12 mb-4" />
+                <p className="text-[10px] font-black uppercase tracking-widest">No items in this category</p>
+              </div>
+            ) : products.filter(item => item.category === activeCategory).map((item) => (
               <div key={item.id} className="group p-6 rounded-3xl bg-slate-800/30 border border-white/5 hover:border-emerald-500/50 transition-all duration-300">
-                <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">{item.image}</div>
+                <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">{item.image_url}</div>
                 <h3 className="text-sm font-black text-white uppercase tracking-tight mb-1">{item.name}</h3>
                 <p className="text-emerald-400 font-black italic text-lg mb-4">{item.price.toLocaleString()}원</p>
                 <button 
@@ -159,7 +177,7 @@ const FoodOrderModal: React.FC<FoodOrderModalProps> = ({ isOpen, onClose }) => {
             ) : (
               <div className="space-y-4">
                 {Object.entries(cart).map(([id, qty]) => {
-                  const item = MENU_ITEMS.find(m => m.id === Number(id));
+                  const item = products.find(m => m.id === id);
                   return (
                     <div key={id} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
                       <div className="flex flex-col">
@@ -167,9 +185,9 @@ const FoodOrderModal: React.FC<FoodOrderModalProps> = ({ isOpen, onClose }) => {
                         <span className="text-[10px] font-bold text-emerald-400 uppercase mt-0.5">{(item?.price || 0).toLocaleString()}원</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <button onClick={() => removeFromCart(Number(id))} className="p-1 rounded-md bg-white/5 text-slate-400 hover:text-white"><Minus className="w-3 h-3" /></button>
+                        <button onClick={() => removeFromCart(id)} className="p-1 rounded-md bg-white/5 text-slate-400 hover:text-white"><Minus className="w-3 h-3" /></button>
                         <span className="text-sm font-black text-white">{qty}</span>
-                        <button onClick={() => addToCart(Number(id))} className="p-1 rounded-md bg-white/5 text-slate-400 hover:text-white"><Plus className="w-3 h-3" /></button>
+                        <button onClick={() => addToCart(id)} className="p-1 rounded-md bg-white/5 text-slate-400 hover:text-white"><Plus className="w-3 h-3" /></button>
                       </div>
                     </div>
                   );
