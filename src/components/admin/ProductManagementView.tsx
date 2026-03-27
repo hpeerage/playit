@@ -24,6 +24,7 @@ const ProductManagementView = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [newProduct, setNewProduct] = useState({
     name: '',
     category: 'meal',
@@ -114,26 +115,23 @@ const ProductManagementView = () => {
     if (!error) fetchProducts();
   };
 
-  const deleteProduct = async (id: string) => {
-    console.log('Attempting to delete product:', id);
-    if (!window.confirm('정말 이 상품을 삭제하시겠습니까?')) {
-      console.log('Deletion cancelled by user');
-      return;
-    }
+  const performDelete = async () => {
+    if (!productToDelete) return;
     
     try {
-      const { error } = await supabase.from('products').delete().eq('id', id);
+      const { error } = await supabase.from('products').delete().eq('id', productToDelete);
       if (error) {
         console.error('Error deleting product from Supabase:', error);
         alert('상품 삭제 중 오류가 발생했습니다: ' + error.message);
       } else {
-        console.log('Product deleted successfully');
         alert('상품이 성공적으로 삭제되었습니다.');
         fetchProducts();
       }
     } catch (err: any) {
       console.error('Unexpected error during deletion:', err);
       alert('예상치 못한 오류가 발생했습니다: ' + err.message);
+    } finally {
+      setProductToDelete(null);
     }
   };
 
@@ -208,7 +206,7 @@ const ProductManagementView = () => {
                     {product.is_available ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                   </button>
                   <button 
-                    onClick={() => deleteProduct(product.id)}
+                    onClick={() => setProductToDelete(product.id)}
                     className="w-10 h-10 rounded-xl bg-slate-800 border border-white/5 text-slate-500 hover:bg-red-500 hover:text-white hover:border-red-500/50 flex items-center justify-center transition-all"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -362,6 +360,39 @@ const ProductManagementView = () => {
               </button>
             </div>
           </form>
+        </div>
+      )}
+      {/* Custom Delete Confirmation Modal */}
+      {productToDelete && (
+        <div className="fixed inset-0 z-[5000] flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setProductToDelete(null)} />
+          <div className="relative w-full max-w-sm bg-slate-900 border border-white/10 rounded-[32px] p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center mb-6 mx-auto border border-red-500/30">
+              <Trash2 className="w-8 h-8 text-red-500" />
+            </div>
+            
+            <h3 className="text-xl font-black italic text-white uppercase tracking-tighter text-center mb-2">Delete Product?</h3>
+            <p className="text-slate-400 text-xs font-medium text-center leading-relaxed mb-8 px-4">
+              이 작업은 되돌릴 수 없습니다.<br />정말 이 상품을 메뉴에서 영구적으로 삭제하시겠습니까?
+            </p>
+            
+            <div className="flex gap-3">
+              <button 
+                type="button"
+                onClick={() => setProductToDelete(null)}
+                className="flex-1 h-12 rounded-xl border border-white/5 text-slate-500 text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                type="button"
+                onClick={performDelete}
+                className="flex-1 h-12 rounded-xl bg-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-900/20 hover:bg-red-500 transition-all"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
