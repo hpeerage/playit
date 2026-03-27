@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Package, Plus, Trash2, Check, X, Loader2, Image as ImageIcon, DollarSign } from 'lucide-react';
+import { Package, Plus, Trash2, Check, X, Loader2, DollarSign, Upload } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const EMOJI_CATEGORIES = {
@@ -32,6 +32,51 @@ const ProductManagementView = () => {
     is_available: true,
     stock: -1
   });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 파일 타입 체크
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일만 업로드 가능합니다.');
+      return;
+    }
+
+    // 파일 크기 체크 (2MB 제한)
+    if (file.size > 2 * 1024 * 1024) {
+      alert('파일 크기는 2MB를 초과할 수 없습니다.');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+      const filePath = `products/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // 공용 URL 가져오기
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath);
+
+      setNewProduct(prev => ({ ...prev, image_url: publicUrl }));
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      alert('이미지 업로드 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -112,8 +157,12 @@ const ProductManagementView = () => {
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             {products.map((product) => (
               <div key={product.id} className="bg-slate-900/40 border border-white/5 p-6 rounded-[32px] flex items-center gap-6 group hover:border-purple-500/30 transition-all duration-500">
-                <div className="w-20 h-20 rounded-2xl bg-slate-800 flex items-center justify-center text-4xl border border-white/10 group-hover:scale-110 transition-transform duration-500">
-                  {product.image_url.length < 4 ? product.image_url : <ImageIcon className="w-8 h-8 text-slate-600" />}
+                <div className="w-20 h-20 rounded-2xl bg-slate-800 flex items-center justify-center text-4xl border border-white/10 group-hover:scale-110 transition-transform duration-500 overflow-hidden shrink-0">
+                  {product.image_url?.startsWith('http') ? (
+                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{product.image_url}</span>
+                  )}
                 </div>
                 
                 <div className="flex-1 min-w-0">
@@ -213,10 +262,29 @@ const ProductManagementView = () => {
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Choose Icon (Emoji)</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Choose Icon or Upload Image</label>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="flex items-center gap-2 text-[10px] font-bold text-purple-400 hover:text-purple-300 transition-colors bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20"
+                  >
+                    {isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                    UPLOAD PHOTO
+                  </button>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleImageUpload} 
+                    className="hidden" 
+                    accept="image/*"
+                  />
+                </div>
+                
                 <div className="bg-slate-800/30 border border-white/5 rounded-3xl p-4">
-                  <div className="grid grid-cols-8 gap-2 max-h-[160px] overflow-y-auto custom-scrollbar p-1">
-                    {/* Dynamic emoji list based on category or all */}
+                  <div className="grid grid-cols-8 gap-2 max-h-[140px] overflow-y-auto custom-scrollbar p-1">
+                    {/* Dynamic emoji list */}
                     {[...EMOJI_CATEGORIES.meal, ...EMOJI_CATEGORIES.drink, ...EMOJI_CATEGORIES.snack, ...EMOJI_CATEGORIES.special].map((emoji, idx) => (
                       <button
                         key={idx}
@@ -235,20 +303,33 @@ const ProductManagementView = () => {
                   </div>
                 </div>
                 
-                <div className="mt-4 flex items-center gap-4">
-                   <div className="w-12 h-12 rounded-2xl bg-purple-600/20 flex items-center justify-center text-2xl border border-purple-500/30">
-                     {newProduct.image_url.length < 4 ? newProduct.image_url : '❓'}
+                <div className="mt-4 flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5">
+                   <div className="w-14 h-14 rounded-2xl bg-purple-600/20 flex items-center justify-center text-2xl border border-purple-500/30 overflow-hidden shrink-0">
+                     {newProduct.image_url.startsWith('http') ? (
+                       <img src={newProduct.image_url} alt="Preview" className="w-full h-full object-cover" />
+                     ) : (
+                       <span>{newProduct.image_url || '❓'}</span>
+                     )}
                    </div>
-                   <div className="flex-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">Selected Icon Preview</p>
+                   <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">Selected Content</p>
                       <input 
                         type="text"
                         value={newProduct.image_url}
                         onChange={e => setNewProduct({...newProduct, image_url: e.target.value})}
-                        className="w-full bg-transparent border-none p-0 text-white font-black text-sm focus:outline-none"
-                        placeholder="Or enter URL/Emoji manually..."
+                        className="w-full bg-transparent border-none p-0 text-white font-medium text-xs focus:outline-none truncate"
+                        placeholder="Image URL or Emoji..."
                       />
                    </div>
+                   {newProduct.image_url.length > 0 && (
+                     <button 
+                      type="button" 
+                      onClick={() => setNewProduct({...newProduct, image_url: ''})}
+                      className="p-2 text-slate-500 hover:text-white transition-colors"
+                     >
+                        <X className="w-4 h-4" />
+                     </button>
+                   )}
                 </div>
               </div>
             </div>

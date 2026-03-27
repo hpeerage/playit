@@ -147,7 +147,13 @@ const FoodOrderModal: React.FC<FoodOrderModalProps> = ({ isOpen, onClose }) => {
               </div>
             ) : products.filter(item => item.category === activeCategory).map((item) => (
               <div key={item.id} className="group p-6 rounded-3xl bg-slate-800/30 border border-white/5 hover:border-emerald-500/50 transition-all duration-300">
-                <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-300">{item.image_url}</div>
+                <div className="w-full aspect-square rounded-2xl bg-slate-900/50 flex items-center justify-center mb-4 overflow-hidden border border-white/5">
+                  {item.image_url?.startsWith('http') ? (
+                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" />
+                  ) : (
+                    <span className="text-5xl transform group-hover:scale-110 transition-transform duration-300">{item.image_url}</span>
+                  )}
+                </div>
                 <h3 className="text-sm font-black text-white uppercase tracking-tight mb-1">{item.name}</h3>
                 <p className="text-emerald-400 font-black italic text-lg mb-4">{item.price.toLocaleString()}원</p>
                 <button 
