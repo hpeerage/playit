@@ -1,7 +1,8 @@
 /* src/pages/ClientLauncher.tsx */
 import { useState, useEffect } from 'react';
-import { Gamepad2, ShoppingBag, Headset, User, Bell } from 'lucide-react';
+import { Gamepad2, ShoppingBag, Headset, User, Bell, Truck } from 'lucide-react';
 import ClientHeader from '../components/client/ClientHeader';
+import LauncherCard from '../components/client/LauncherCard';
 import GameListModal from '../components/client/GameListModal';
 import FoodOrderModal from '../components/client/FoodOrderModal';
 import MyInfoModal from '../components/client/MyInfoModal';
@@ -56,7 +57,6 @@ const ClientLauncher = () => {
   useEffect(() => {
     if (!user) return;
 
-    // 현재 클라이언트의 room_id를 가져옴 (여기서는 임시로 첫번째 room을 사용하거나 room_number 1번 검색)
     const setupCommandSubscription = async () => {
       const { data: roomData } = await supabase.from('rooms').select('id').eq('room_number', 1).single();
       if (!roomData) return;
@@ -93,7 +93,6 @@ const ClientLauncher = () => {
               setTimeout(() => setShowToast(false), 8000);
             }
 
-            // 실행 완료 표시
             await supabase.from('remote_commands').update({ is_executed: true }).eq('id', cmdId);
           }
         )
@@ -118,7 +117,6 @@ const ClientLauncher = () => {
       });
       setShowToast(true);
       
-      // 알림 전송 (room_number 1번으로 임시 가정)
       const { data: rooms } = await supabase.from('rooms').select('id').eq('room_number', 1).single();
       
       await supabase.from('notifications').insert({
@@ -133,7 +131,44 @@ const ClientLauncher = () => {
       console.error('Call Admin failed:', error);
     }
   };
-
+  
+  const menuItems = [
+    { 
+      title: "GAME START", 
+      description: "EXPLORE THE LATEST TITLES", 
+      icon: Gamepad2, 
+      color: "bg-fuchsia-600", 
+      onClick: () => setIsGameModalOpen(true) 
+    },
+    { 
+      title: "ORDER FOOD", 
+      description: "PREMIUM CUISINE AT YOUR SERVICE", 
+      icon: ShoppingBag, 
+      color: "bg-blue-600", 
+      onClick: () => setIsFoodModalOpen(true) 
+    },
+    { 
+      title: "CALL ADMIN", 
+      description: "24/7 TERMINAL SUPPORT", 
+      icon: Headset, 
+      color: "bg-emerald-600", 
+      onClick: handleCallAdmin 
+    },
+    { 
+      title: "MY INFO", 
+      description: "ACCOUNT STATUS & CREDITS", 
+      icon: User, 
+      color: "bg-orange-600",
+      onClick: () => setIsInfoModalOpen(true)
+    },
+    { 
+      title: "DELIVERY ORDER", 
+      description: "EXTERNAL DELIVERY SERVICES", 
+      icon: Truck,
+      color: "bg-purple-600",
+      onClick: () => setIsDeliveryModalOpen(true)
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-100 overflow-hidden relative font-sans">
@@ -145,7 +180,7 @@ const ClientLauncher = () => {
       <div className="relative z-10 flex flex-col h-screen overflow-hidden">
         <ClientHeader />
 
-        <main className="flex-1 flex flex-col justify-center px-10 py-6 overflow-x-auto custom-scrollbar">
+        <main className="flex-1 flex flex-col justify-center px-10 py-6 overflow-hidden">
           <div className="mb-6 px-2">
              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-purple-500/60 mb-1 block">Authentication Node Connected</span>
              <h2 className="text-4xl font-black italic tracking-tighter text-white uppercase leading-none">
@@ -153,29 +188,16 @@ const ClientLauncher = () => {
              </h2>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pb-10 px-2 relative z-10 w-full max-w-6xl mx-auto">
-            {[
-                { title: 'GAME START', icon: Gamepad2, color: 'from-fuchsia-600 to-purple-600', shadow: 'shadow-purple-500/20', onClick: () => setIsGameModalOpen(true) },
-                { title: 'ORDER FOOD', icon: ShoppingBag, color: 'from-blue-600 to-cyan-600', shadow: 'shadow-blue-500/20', onClick: () => setIsFoodModalOpen(true) },
-                { title: 'CALL ADMIN', icon: Headset, color: 'from-emerald-600 to-teal-600', shadow: 'shadow-emerald-500/20', onClick: handleCallAdmin },
-                { title: 'MY INFO', icon: User, color: 'from-orange-600 to-amber-600', shadow: 'shadow-orange-500/20', onClick: () => setIsInfoModalOpen(true) }
-            ].map((item, i) => (
-                <button 
-                    key={i} 
-                    className={cn(
-                        "group relative p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:bg-white/[0.08] hover:border-white/20 active:scale-95",
-                        "flex flex-col items-center justify-center gap-6 overflow-hidden",
-                        `hover:${item.shadow}`
-                    )}
-                    onClick={item.onClick}
-                >
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className={cn("w-20 h-20 rounded-[1.8rem] bg-gradient-to-br flex items-center justify-center shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-500", item.color)}>
-                        <item.icon className="w-10 h-10 text-white" />
-                    </div>
-                    <span className="text-sm font-black italic tracking-[0.2em] text-white/50 group-hover:text-white transition-colors uppercase relative z-10">{item.title}</span>
-                    <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-white/5 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all" />
-                </button>
+          <div className="flex gap-8 pb-10 px-2 overflow-x-auto custom-scrollbar relative z-10 w-full max-w-[1600px] mx-auto scroll-smooth py-4">
+            {menuItems.map((item, index) => (
+              <LauncherCard 
+                key={index}
+                title={item.title}
+                description={item.description}
+                icon={item.icon}
+                color={item.color}
+                onClick={item.onClick}
+              />
             ))}
           </div>
 
