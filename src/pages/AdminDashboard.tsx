@@ -11,7 +11,7 @@ import ProductManagementView from '../components/admin/ProductManagementView';
 import { useRooms } from '../hooks/useRooms';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
-import { LayoutDashboard, Users, ShoppingBag, Monitor, BarChart3, Shield, Settings, Bell, Grid, Map as MapIcon, X, Package } from 'lucide-react';
+import { LayoutDashboard, Users, ShoppingBag, Monitor, BarChart3, Settings, Bell, Grid, Map as MapIcon, X, Package } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { rooms, stats, loading, updateRoomStatus, checkoutRoom, sendRemoteCommand } = useRooms();
@@ -19,7 +19,6 @@ const AdminDashboard = () => {
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [pendingOrders, setPendingOrders] = useState(3);
   const [filter, setFilter] = useState('All');
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [recentNotifications, setRecentNotifications] = useState<any[]>([]);
@@ -30,8 +29,8 @@ const AdminDashboard = () => {
     total: stats.totalRooms,
     using: stats.activeRooms,
     empty: stats.emptyRooms,
-    pendingOrders: pendingOrders
-  }), [stats, pendingOrders]);
+    pendingOrders: notifications.length
+  }), [stats, notifications.length]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -98,12 +97,6 @@ const AdminDashboard = () => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
   
-  const dismissAllNotifications = async () => {
-    if (notifications.length === 0) return;
-    const ids = notifications.map(n => n.id);
-    await supabase.from('notifications').update({ is_read: true }).in('id', ids);
-    setNotifications([]);
-  };
 
   const selectedRoom = useMemo(() => 
     rooms.find(r => r.id === selectedRoomId) || null, 

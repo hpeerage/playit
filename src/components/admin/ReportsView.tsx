@@ -3,19 +3,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { 
   TrendingUp, 
   ShoppingBag, 
-  Clock, 
-  BarChart3, 
   Calendar, 
   Download, 
-  ArrowUpRight, 
-  ArrowDownRight,
-  ChevronRight, 
-  Target, 
-  Package, 
   Monitor, 
   Utensils, 
-  Laptop,
-  Users
+  Laptop
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { supabase } from '../../lib/supabase';
