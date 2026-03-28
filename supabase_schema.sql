@@ -72,3 +72,28 @@ CREATE TABLE IF NOT EXISTS public.notifications (
 );
 
 CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON public.notifications(is_read);
+
+-- 9. 리모트 명령 테이블 (Remote Commands) - WBS 104 연동
+CREATE TABLE IF NOT EXISTS public.remote_commands (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    room_id UUID REFERENCES public.rooms(id) NOT NULL,
+    command TEXT NOT NULL, -- LOGOUT, MESSAGE, RESTART
+    payload JSONB DEFAULT '{}',
+    is_executed BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_remote_commands_room_id ON public.remote_commands(room_id);
+
+-- 10. 시간 사용 로그 테이블 (Time Logs) - WBS 101 연동
+CREATE TABLE IF NOT EXISTS public.time_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.members(id) NOT NULL,
+    type TEXT NOT NULL, -- Charge, Use, Refund
+    amount INTERVAL NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_time_logs_user_id ON public.time_logs(user_id);
+
