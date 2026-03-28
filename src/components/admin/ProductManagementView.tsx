@@ -216,9 +216,28 @@ const ProductManagementView = () => {
                     )}
                   </div>
                   <h3 className="text-lg font-black text-white uppercase truncate">{product.name}</h3>
-                  <p className="text-slate-500 text-[11px] font-bold uppercase tracking-widest mt-1">
-                    {product.price.toLocaleString()} KRW
-                  </p>
+                  <div className="flex items-center gap-4 mt-2">
+                    <p className="text-slate-500 text-[11px] font-bold uppercase tracking-widest">
+                      {product.price.toLocaleString()} KRW
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <div className={cn(
+                        "w-1.5 h-1.5 rounded-full animate-pulse",
+                        product.stock === -1 ? "bg-slate-700" :
+                        product.stock === 0 ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" :
+                        product.stock <= 5 ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" :
+                        "bg-emerald-500"
+                      )} />
+                      <span className={cn(
+                        "text-[10px] font-black uppercase tracking-widest",
+                        product.stock === 0 ? "text-red-500" :
+                        product.stock <= 5 && product.stock !== -1 ? "text-amber-500" :
+                        "text-slate-500"
+                      )}>
+                        {product.stock === -1 ? 'Unlimited' : `Stock: ${product.stock}`}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -305,6 +324,20 @@ const ProductManagementView = () => {
                       placeholder="0"
                     />
                     <DollarSign className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Initial Stock (-1: Unlimited)</label>
+                  <div className="relative">
+                    <input 
+                      required
+                      type="number"
+                      value={newProduct.stock}
+                      onChange={e => setNewProduct({...newProduct, stock: parseInt(e.target.value)})}
+                      className="w-full h-14 bg-slate-800/50 border border-white/5 rounded-2xl px-6 text-white font-bold focus:outline-none focus:border-purple-500 transition-all"
+                      placeholder="-1"
+                    />
+                    <Package className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   </div>
                 </div>
               </div>

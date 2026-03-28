@@ -182,25 +182,52 @@ const FoodOrderModal: React.FC<FoodOrderModalProps> = ({ isOpen, onClose }) => {
                 <UtensilsCrossed className="w-12 h-12 mb-4" />
                 <p className="text-[10px] font-black uppercase tracking-widest">No items in this category</p>
               </div>
-            ) : filteredProducts.map((item) => (
-              <div key={item.id} className="group p-6 rounded-3xl bg-slate-800/30 border border-white/5 hover:border-emerald-500/50 transition-all duration-300">
-                <div className="w-full aspect-square rounded-2xl bg-slate-900/50 flex items-center justify-center mb-4 overflow-hidden border border-white/5">
-                  {item.image_url?.startsWith('http') ? (
-                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" />
-                  ) : (
-                    <span className="text-5xl transform group-hover:scale-110 transition-transform duration-300">{item.image_url}</span>
+            ) : filteredProducts.map((item) => {
+              const isSoldOut = item.stock === 0;
+              return (
+                <div key={item.id} className={cn(
+                  "group p-6 rounded-3xl bg-slate-800/30 border border-white/5 transition-all duration-300 relative",
+                  isSoldOut ? "opacity-60 grayscale-[0.5]" : "hover:border-emerald-500/50"
+                )}>
+                  {isSoldOut && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+                      <div className="bg-slate-950/80 border border-red-500/50 px-4 py-1.5 rounded-full shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+                        <span className="text-[10px] font-black uppercase text-red-500 tracking-[0.2em]">Sold Out</span>
+                      </div>
+                    </div>
                   )}
+                  <div className="w-full aspect-square rounded-2xl bg-slate-900/50 flex items-center justify-center mb-4 overflow-hidden border border-white/5">
+                    {item.image_url?.startsWith('http') ? (
+                      <img src={item.image_url} alt={item.name} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" />
+                    ) : (
+                      <span className="text-5xl transform group-hover:scale-110 transition-transform duration-300">{item.image_url}</span>
+                    )}
+                  </div>
+                  <h3 className="text-sm font-black text-white uppercase tracking-tight mb-1">{item.name}</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-emerald-400 font-black italic text-lg">{item.price.toLocaleString()}원</p>
+                    {item.stock > 0 && item.stock <= 5 && (
+                      <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest bg-amber-500/10 px-2 py-0.5 rounded-md">
+                        Only {item.stock} left
+                      </span>
+                    )}
+                  </div>
+                  <button 
+                    onClick={() => !isSoldOut && addToCart(item.id)}
+                    disabled={isSoldOut}
+                    className={cn(
+                      "w-full h-10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                      isSoldOut 
+                        ? "bg-slate-800 text-slate-500 border border-white/5 cursor-not-allowed"
+                        : "bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/20"
+                    )}
+                  >
+                    {isSoldOut ? 'Unavailable' : 'Add to Cart'}
+                  </button>
                 </div>
-                <h3 className="text-sm font-black text-white uppercase tracking-tight mb-1">{item.name}</h3>
-                <p className="text-emerald-400 font-black italic text-lg mb-4">{item.price.toLocaleString()}원</p>
-                <button 
-                  onClick={() => addToCart(item.id)}
-                  className="w-full h-10 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/20 text-[10px] font-black uppercase tracking-widest transition-all"
-                >
-                  Add to Cart
-                </button>
-              </div>
-            ))}
+              );
+            })}
+
           </div>
         </div>
 
