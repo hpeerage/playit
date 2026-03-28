@@ -28,19 +28,42 @@ const FoodOrderModal: React.FC<FoodOrderModalProps> = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen) {
       const fetchProducts = async () => {
-        setLoading(true);
-        const { data } = await supabase
-          .from('products')
-          .select('*')
-          .eq('is_available', true); // Only show available items
-        if (data) setProducts(data);
-        setLoading(false);
+        try {
+          setLoading(true);
+          console.log('[FoodOrderModal] Fetching available products...');
+          const { data, error } = await supabase
+            .from('products')
+            .select('*')
+            .eq('is_available', true);
+          
+          if (error) {
+            console.error('[FoodOrderModal] Supabase error:', error);
+            throw error;
+          }
+
+          if (data) {
+            console.log(`[FoodOrderModal] Successfully loaded ${data.length} products:`, data);
+            setProducts(data);
+          } else {
+            console.warn('[FoodOrderModal] No available products found in database.');
+            setProducts([]);
+          }
+        } catch (err) {
+          console.error('[FoodOrderModal] Failed to fetch products:', err);
+        } finally {
+          setLoading(false);
+        }
       };
       fetchProducts();
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  // Filter products by category (case-insensitive)
+  const filteredProducts = products.filter(item => 
+    item.category?.toLowerCase() === activeCategory.toLowerCase()
+  );
 
   const addToCart = (id: string) => {
     setCart(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
@@ -154,12 +177,12 @@ const FoodOrderModal: React.FC<FoodOrderModalProps> = ({ isOpen, onClose }) => {
               <div className="col-span-full h-full flex items-center justify-center">
                 <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
               </div>
-            ) : products.filter(item => item.category === activeCategory).length === 0 ? (
+            ) : filteredProducts.length === 0 ? (
               <div className="col-span-full h-full flex flex-col items-center justify-center opacity-20">
                 <UtensilsCrossed className="w-12 h-12 mb-4" />
                 <p className="text-[10px] font-black uppercase tracking-widest">No items in this category</p>
               </div>
-            ) : products.filter(item => item.category === activeCategory).map((item) => (
+            ) : filteredProducts.map((item) => (
               <div key={item.id} className="group p-6 rounded-3xl bg-slate-800/30 border border-white/5 hover:border-emerald-500/50 transition-all duration-300">
                 <div className="w-full aspect-square rounded-2xl bg-slate-900/50 flex items-center justify-center mb-4 overflow-hidden border border-white/5">
                   {item.image_url?.startsWith('http') ? (

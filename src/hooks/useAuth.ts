@@ -7,6 +7,7 @@ import type { Member } from '../lib/supabase';
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [member, setMember] = useState<Member | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchMemberProfile = useCallback(async (userId: string) => {
@@ -26,6 +27,7 @@ export const useAuth = () => {
         }
       }
       setMember(data || null);
+      setIsAdmin(data?.is_admin || false);
     } catch (err) {
       console.error('Error fetching member profile:', err);
     }
@@ -34,25 +36,36 @@ export const useAuth = () => {
   useEffect(() => {
     // 1. 초기 세션 확인
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchMemberProfile(session.user.id);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await fetchMemberProfile(session.user.id);
+        }
+      } catch (err) {
+        console.error('Session check failed:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     checkSession();
 
     // 2. 인증 상태 변화 감지
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchMemberProfile(session.user.id);
-      } else {
-        setMember(null);
+      try {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await fetchMemberProfile(session.user.id);
+        } else {
+          setMember(null);
+          setIsAdmin(false);
+        }
+      } catch (err) {
+        console.error('Auth state change failed:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => {
@@ -67,6 +80,7 @@ export const useAuth = () => {
   return {
     user,
     member,
+    isAdmin,
     loading,
     signOut,
     refreshProfile: () => user && fetchMemberProfile(user.id)

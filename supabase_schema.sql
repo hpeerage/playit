@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS public.members (
     rank TEXT DEFAULT 'Silver', -- Silver, Gold, VIP, Diamond
     points INTEGER DEFAULT 0,
     remaining_time INTERVAL DEFAULT '00:00:00',
+    is_admin BOOLEAN DEFAULT false, -- 관리자 권한 여부
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
