@@ -239,7 +239,7 @@ const LoginPage = () => {
 
         <div className="mt-10 text-center">
             <p className="text-[9px] font-bold text-slate-600 uppercase tracking-[0.4em]">
-                Secure Access Terminal v1.1.0-STABLE
+                Secure Access Terminal v5.0.1-DEMO
             </p>
         </div>
       </div>

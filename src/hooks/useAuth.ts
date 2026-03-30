@@ -29,9 +29,9 @@ export const useAuth = () => {
       setMember(data || null);
       
       // 관리자 권한 확인 (admin@playit.com 이메일은 DB 상태에 관계없이 관리자로 인식)
-      const isActuallyAdmin = data?.is_admin === true;
-      const isAdminEmail = (await supabase.auth.getUser()).data.user?.email === 'admin@playit.com';
-      setIsAdmin(isActuallyAdmin || isAdminEmail);
+      const currentSession = await supabase.auth.getSession();
+      const isAdminEmail = currentSession.data.session?.user.email === 'admin@playit.com';
+      setIsAdmin(data?.is_admin === true || isAdminEmail);
     } catch (err) {
       console.error('Error fetching member profile:', err);
     }
