@@ -6,7 +6,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'demo-key';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export type RoomStatus = 'Empty' | 'Using' | 'Maintenance' | 'Cleaning';
+export type RoomStatus = 'Empty' | 'Using' | 'Maintenance';
 
 export interface Room {
   id: string;
@@ -38,7 +38,7 @@ export interface Order {
   member_id: string;
   items: any[];
   total_price: number;
-  status: 'Pending' | 'Processing' | 'Completed' | 'Canceled';
+  status: 'Pending' | 'Completed' | 'Canceled';
   created_at: string;
 }
 

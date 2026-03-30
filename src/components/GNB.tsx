@@ -1,6 +1,6 @@
 /* src/components/GNB.tsx - Premium Slim Version */
 import React from 'react';
-import { LayoutDashboard, Users, Monitor, BarChart2, Shield, Settings, Package, MessageSquare, type LucideIcon } from 'lucide-react';
+import { Shield, Settings, type LucideIcon } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface GNBProps {

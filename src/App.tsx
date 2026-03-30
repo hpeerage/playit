@@ -1,6 +1,4 @@
-/* src/App.tsx - Extreme Demo Bypass Mode */
-import { useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import AdminDashboard from './pages/AdminDashboard';
 import ClientLauncher from './pages/ClientLauncher';
 import LoginPage from './pages/LoginPage';

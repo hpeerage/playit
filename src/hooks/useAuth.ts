@@ -1,8 +1,9 @@
-/* src/hooks/useAuth.ts - Extreme Demo Bypass Mode */
+/* src/hooks/useAuth.ts - Build Fix for Demo */
 import { useCallback } from 'react';
 
 export const useAuth = () => {
-  // 모든 인증 로직을 무시하고 즉시 데모 데이터를 반환합니다.
+  // 모든 인증 로직을 무시하고 즉시 데모 관리자 데이터를 반환합니다.
+  // 빌드 오류 방지를 위해 미사용 Supabase 호출 로직을 제거했습니다.
   return {
     user: { 
       id: 'demo-admin-uuid', 
@@ -24,7 +25,6 @@ export const useAuth = () => {
     loading: false,
     signOut: async () => { 
       sessionStorage.clear();
-      // 절대 경로 / 가 아닌 상대 경로 또는 해시를 직접 조작하여 도메인 이탈 방지
       window.location.hash = '/login'; 
     },
     refreshProfile: useCallback(() => {}, [])

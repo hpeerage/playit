@@ -95,7 +95,7 @@ const MemberListView = () => {
                     </div>
                     <div className="flex flex-col">
                       <span className="text-sm font-bold text-white tracking-tight">{member.name}</span>
-                      <span className="text-[10px] font-bold text-slate-600 uppercase tabular-nums">UID: @{member.user_id_display || member.user_id.split('-')[0]}</span>
+                      <span className="text-[10px] font-bold text-slate-600 uppercase tabular-nums">UID: @{member.user_id.split('-')[0]}</span>
                     </div>
                   </div>
                 </td>

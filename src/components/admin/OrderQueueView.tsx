@@ -66,7 +66,7 @@ const OrderQueueView = () => {
                   <div className="flex items-center gap-2 text-slate-500">
                     <User className="w-3 h-3" />
                     <span className="text-[10px] font-bold tracking-widest uppercase">
-                      {order.user_id ? 'MEMBER' : 'GUEST'}
+                      {order.member_id ? 'MEMBER' : 'GUEST'}
                     </span>
                   </div>
                 </div>
@@ -79,7 +79,7 @@ const OrderQueueView = () => {
                 <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Order Items</span>
               </div>
               <div className="space-y-1">
-                {(order.order_items as any[] || []).map((item: any, idx: number) => (
+                {(order.items as any[] || []).map((item: any, idx: number) => (
                   <p key={idx} className="text-xs font-bold text-slate-300 leading-relaxed uppercase">
                     {item.name} x{item.count}
                   </p>
