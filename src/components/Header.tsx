@@ -82,7 +82,13 @@ const Header: React.FC<HeaderProps> = ({ stats, currentTime, unreadCount, onBell
                </div>
                <span className="text-sm font-black italic whitespace-nowrap">마스터_관리자</span>
             </div>
-            <button className="p-2.5 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/30 group">
+            <button 
+              onClick={() => {
+                sessionStorage.clear();
+                window.location.hash = '/login';
+              }}
+              className="p-2.5 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/30 group"
+            >
                <LogOut className="w-5 h-5 text-slate-500 group-hover:text-red-500 transition-colors" />
             </button>
          </div>

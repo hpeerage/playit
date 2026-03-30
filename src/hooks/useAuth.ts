@@ -24,7 +24,8 @@ export const useAuth = () => {
     loading: false,
     signOut: async () => { 
       sessionStorage.clear();
-      window.location.href = '/#/login'; 
+      // 절대 경로 / 가 아닌 상대 경로 또는 해시를 직접 조작하여 도메인 이탈 방지
+      window.location.hash = '/login'; 
     },
     refreshProfile: useCallback(() => {}, [])
   };

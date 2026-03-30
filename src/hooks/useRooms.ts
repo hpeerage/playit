@@ -93,14 +93,28 @@ export const useRooms = () => {
     if (error) console.error('Error sending remote command:', error.message);
   };
 
+  // 데모 시연을 위해 즉시 가상 데이터를 반환합니다.
+  const demoRooms = Array.from({ length: 48 }, (_, i) => ({
+    id: `room-${i + 1}`,
+    room_number: i + 1,
+    status: i % 7 === 0 ? 'Using' : 'Empty',
+    zone: (101 + Math.floor(i / 4)).toString(),
+    remaining_time: '02:30:00'
+  })) as Room[];
+
   return {
-    rooms,
-    stats,
-    loading,
-    error,
-    updateRoomStatus,
-    checkoutRoom,
-    sendRemoteCommand,
-    refreshRooms: fetchRooms
+    rooms: demoRooms,
+    stats: {
+      totalRooms: 48,
+      activeRooms: demoRooms.filter(r => r.status === 'Using').length,
+      emptyRooms: demoRooms.filter(r => r.status === 'Empty').length,
+      errorRooms: 0
+    },
+    loading: false,
+    error: null,
+    updateRoomStatus: async () => {},
+    checkoutRoom: async () => {},
+    sendRemoteCommand: async () => {},
+    refreshRooms: () => {}
   };
 };
