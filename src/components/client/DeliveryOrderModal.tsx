@@ -7,12 +7,13 @@ import { useDeliveryOrder, type OrderItemInput } from '../../hooks/useDeliveryOr
 interface DeliveryOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
+  roomId?: string | null;
   roomNumber?: number;
 }
 
 const CATEGORIES = ['전체', '한식', '중식', '일식', '양식', '분식', '야식', '치킨', '피자'];
 
-const DeliveryOrderModal = ({ isOpen, onClose, roomNumber = 1 }: DeliveryOrderModalProps) => {
+const DeliveryOrderModal = ({ isOpen, onClose, roomId, roomNumber = 1 }: DeliveryOrderModalProps) => {
   const { partners, loading, fetchMenusByPartner } = useDelivery();
   const { placeOrder, loading: orderLoading } = useDeliveryOrder();
 
@@ -66,23 +67,11 @@ const DeliveryOrderModal = ({ isOpen, onClose, roomNumber = 1 }: DeliveryOrderMo
   const isCartValid = selectedPartner ? (cartTotal >= selectedPartner.min_order_amount) : false;
 
   const handlePlaceOrder = async () => {
-    if (!selectedPartner || cart.length === 0) return;
+    if (!selectedPartner || cart.length === 0 || !roomId) return;
     
-    // Convert current roomNumber to dummy UUID if no real mapping exists, 
-    // but in Playit there's a real room UUID needed. 
-    // For this context, we'll try to use a placeholder or assume placeOrder handles it.
-    // In a real scenario we need the actual room.id.
-    // Let's pass a placeholder "00000000-0000-0000-0000-[roomNumber]" format purely for demo safely
-    // Or just pass roomNumber as string if UUID isn't strictly enforced at DB level (it is, though).
-    // Let's assume placeOrder expects a valid UUID. We'll generate a fake valid UUID or use a lookup.
-    // To be safe, we'll ask placeOrder to handle the roomNumber string implicitly or we just pass it.
-    // Wait, placeOrder takes `roomId: string`. We'll just pass a stringified mapped room ID.
-    // However, I'll just pass a fake UUID for now to avoid crashes if it's strict: `11111111-1111-1111-1111-111111111111`
-    // Actually, useDeliveryOrder will just try to insert. If it fails, it alerts.
-    // To make it robust without hacking the DB schema right now, I'll just use a generic uuid.
-    
+    // We now have the real room UUID from ClientLauncher
     const success = await placeOrder(
-      '00000000-0000-0000-0000-000000000000', // Warning: Using dummy UUID for room. 
+      roomId,
       selectedPartner.id,
       cart,
       `[Station ${roomNumber}] 문 앞 보관 요청`

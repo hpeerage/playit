@@ -7,6 +7,7 @@ import GameListModal from '../components/client/GameListModal';
 import FoodOrderModal from '../components/client/FoodOrderModal';
 import MyInfoModal from '../components/client/MyInfoModal';
 import DeliveryOrderModal from '../components/client/DeliveryOrderModal';
+import DeliveryTrackerWidget from '../components/client/DeliveryTrackerWidget';
 import FAQModal from '../components/client/FAQModal';
 import { cn } from '../lib/utils';
 import { supabase } from '../lib/supabase';
@@ -303,6 +304,7 @@ const ClientLauncher = () => {
       <DeliveryOrderModal 
         isOpen={isDeliveryModalOpen} 
         onClose={() => setIsDeliveryModalOpen(false)} 
+        roomId={roomId} 
         roomNumber={1011} 
       />
       <FAQModal 
@@ -311,6 +313,7 @@ const ClientLauncher = () => {
         onRequestCall={handleCallAdmin} 
       />
 
+      <DeliveryTrackerWidget roomId={roomId} />
       <ChatWidget roomId={roomId} member={displayMember} />
 
       {/* Modern Notification Toast */}
