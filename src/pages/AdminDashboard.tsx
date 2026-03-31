@@ -110,6 +110,19 @@ const AdminDashboard = () => {
     await supabase.from('notifications').update({ is_read: true }).eq('id', id);
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
+
+  const deleteNotification = async (id: string) => {
+    await supabase.from('notifications').delete().eq('id', id);
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    setRecentNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const clearAllNotifications = async () => {
+    if (!confirm('모든 알림을 완전히 삭제하시겠습니까?')) return;
+    await supabase.from('notifications').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    setNotifications([]);
+    setRecentNotifications([]);
+  };
   
 
   const selectedRoom = useMemo(() => 
@@ -290,7 +303,15 @@ const AdminDashboard = () => {
       <div className={cn("fixed inset-y-0 right-0 w-[400px] bg-slate-950 border-l border-white/5 z-[3000] shadow-2xl transition-all duration-500", isHistoryOpen ? "translate-x-0" : "translate-x-full")}>
         <div className="flex flex-col h-full">
            <div className="h-[70px] px-8 flex items-center justify-between border-b border-white/5">
-              <h2 className="text-lg font-black italic text-white uppercase tracking-tighter">Notifications</h2>
+              <div className="flex items-center gap-3">
+                 <h2 className="text-lg font-black italic text-white uppercase tracking-tighter">Notifications</h2>
+                 <button 
+                   onClick={clearAllNotifications}
+                   className="text-[10px] font-bold text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 px-2 py-1 rounded transition-colors"
+                 >
+                   Clear All
+                 </button>
+              </div>
               <button onClick={() => setIsHistoryOpen(false)} className="p-2 hover:bg-white/5 rounded-full"><X className="w-5 h-5" /></button>
            </div>
            <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -317,7 +338,14 @@ const AdminDashboard = () => {
                           ST {n.rooms?.room_number || '??'}
                         </span>
                       </div>
-                      <button onClick={() => dismissNotification(n.id)} className="text-[8px] text-slate-500 hover:text-white uppercase font-black">Dismiss</button>
+                      <div className="flex items-center gap-2">
+                        {n.is_read ? null : (
+                          <button onClick={() => dismissNotification(n.id)} className="text-[8px] text-slate-500 hover:text-white uppercase font-black">Read</button>
+                        )}
+                        <button onClick={() => deleteNotification(n.id)} className="p-1 rounded-full text-red-500/70 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                     <p className="text-xs font-bold text-slate-300 mb-1 leading-relaxed whitespace-pre-wrap">{n.message}</p>
                     <span className="text-[8px] font-bold text-slate-600 uppercase">{new Date(n.created_at).toLocaleString()}</span>
@@ -332,9 +360,15 @@ const AdminDashboard = () => {
       <div className="fixed bottom-12 right-6 z-[2000] flex flex-col gap-3 items-end">
         {notifications.map((n) => (
           <div key={n.id} className={cn(
-            "bg-slate-900/95 border-l-4 p-4 rounded-xl shadow-2xl w-[320px] animate-in slide-in-from-right",
+            "bg-slate-900/95 border-l-4 p-4 rounded-xl shadow-2xl w-[320px] animate-in slide-in-from-right relative pr-10",
             n.type === 'ORDER' ? "border-l-amber-500" : "border-l-red-500"
           )}>
+             <button 
+               onClick={() => dismissNotification(n.id)} 
+               className="absolute top-4 right-3 p-1.5 rounded-full hover:bg-white/10 text-slate-500 hover:text-white transition-colors border border-transparent hover:border-white/10"
+             >
+               <X className="w-4 h-4" />
+             </button>
              <div className="flex gap-3">
                 {n.type === 'ORDER' ? (
                   <ShoppingBag className="w-5 h-5 text-amber-500" />
@@ -356,12 +390,7 @@ const AdminDashboard = () => {
                     )}>
                       {n.message}
                     </p>
-                   <button 
-                    onClick={() => dismissNotification(n.id)} 
-                    className={cn("mt-2 text-[8px] font-black uppercase", n.type === 'ORDER' ? "text-amber-400" : "text-red-400")}
-                   >
-                    Dismiss
-                   </button>
+
                 </div>
              </div>
           </div>

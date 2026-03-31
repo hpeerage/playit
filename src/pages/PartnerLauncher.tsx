@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Store, CheckCircle, Truck, ShoppingBag, LogIn } from 'lucide-react';
+import { Store, CheckCircle, Truck, ShoppingBag, LogIn, RefreshCw, Undo2 } from 'lucide-react';
 import { useDelivery } from '../hooks/useDelivery';
 import { usePartnerOrders } from '../hooks/usePartnerOrders';
+import { cn } from '../lib/utils';
 
 const STATUS_MAP = {
   'Pending': { label: '신규 주문', color: 'bg-rose-500', icon: ShoppingBag },
+  'Cooking': { label: '주문 확인', color: 'bg-indigo-500', icon: CheckCircle },
   'Delivering': { label: '배송중', color: 'bg-amber-500', icon: Truck },
   'Completed': { label: '완료됨', color: 'bg-emerald-500', icon: CheckCircle }
 };
@@ -16,7 +18,7 @@ const PartnerLauncher = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedPartnerId, setSelectedPartnerId] = useState<string>('');
 
-  const { orders, updateOrderStatus } = usePartnerOrders(isAuthenticated ? selectedPartnerId : undefined);
+  const { orders, updateOrderStatus, refreshOrders } = usePartnerOrders(isAuthenticated ? selectedPartnerId : undefined);
 
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -41,10 +43,15 @@ const PartnerLauncher = () => {
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     await updateOrderStatus(orderId, newStatus);
+    refreshOrders(); // 즉시 로컬 연동
+  };
+
+  const handleHardRefresh = () => {
+    window.location.reload();
   };
 
   const pendingOrders = orders.filter(o => o.status === 'Pending');
-  const activeOrders = orders.filter(o => o.status === 'Delivering'); // Simplified! (No Cooking)
+  const activeOrders = orders.filter(o => ['Cooking', 'Delivering'].includes(o.status));
   const completedOrders = orders.filter(o => o.status === 'Completed').slice(0, 15); // 최근 15개만
 
   if (partnersLoading) {
@@ -94,7 +101,7 @@ const PartnerLauncher = () => {
 
   // --- POS DASHBOARD SCREEN ---
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col text-white font-sans overflow-hidden">
+    <div className="min-h-screen bg-slate-950 flex flex-col text-white font-sans overflow-y-auto lg:overflow-hidden">
       
       {/* Header */}
       <header className="h-20 border-b border-white/5 bg-slate-900/50 flex items-center justify-between px-8 z-10">
@@ -105,19 +112,28 @@ const PartnerLauncher = () => {
           </h1>
         </div>
 
-        <button 
-          onClick={handleLogout}
-          className="px-6 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 font-bold rounded-xl transition-colors text-sm"
-        >
-          로그아웃
-        </button>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={handleHardRefresh}
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors text-sm border border-white/10"
+          >
+            <RefreshCw className="w-4 h-4" /> 새로고침
+          </button>
+          
+          <button 
+            onClick={handleLogout}
+            className="px-6 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 font-bold rounded-xl transition-colors text-sm"
+          >
+            로그아웃
+          </button>
+        </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex overflow-hidden">
+      <main className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden pb-10 lg:pb-0">
         
         {/* Pending Orders Sidebar (신규 주문) */}
-        <div className="w-[400px] border-r border-white/5 bg-slate-900/30 flex flex-col relative z-0">
+        <div className="w-full lg:w-[400px] flex-none min-h-[500px] border-b lg:border-b-0 lg:border-r border-white/5 bg-slate-900/30 flex flex-col relative z-0">
           <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-rose-500/10 to-transparent pointer-events-none" />
           
           <div className="p-6 border-b border-white/5 flex items-center justify-between relative z-10">
@@ -161,12 +177,12 @@ const PartnerLauncher = () => {
                   )}
                 </div>
                 
-                {/* Simplified Status Button: Pending -> Delivering */}
+                {/* Step 1: Pending -> Cooking */}
                 <button 
-                  onClick={() => handleStatusUpdate(order.id, 'Delivering')}
+                  onClick={() => handleStatusUpdate(order.id, 'Cooking')}
                   className="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white font-black rounded-xl text-lg transition-transform active:scale-95 shadow-lg shadow-rose-500/20"
                 >
-                  주문 확인 (배송 시작)
+                  주문/배송 확인
                 </button>
               </div>
             ))}
@@ -174,13 +190,13 @@ const PartnerLauncher = () => {
         </div>
 
         {/* Active & Completed Orders Main Area */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <div className="flex-1 p-8 overflow-x-auto overflow-y-hidden custom-scrollbar bg-slate-950 relative">
+        <div className="flex-1 flex flex-col min-w-0 h-auto lg:h-full">
+          <div className="flex-1 p-4 lg:p-8 overflow-hidden lg:overflow-x-auto lg:overflow-y-hidden custom-scrollbar bg-slate-950 relative">
             <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 blur-[120px] pointer-events-none rounded-full" />
             
-            <div className="flex h-full gap-8 min-w-max">
+            <div className="flex flex-col lg:flex-row h-auto lg:h-full gap-6 lg:gap-8 lg:min-w-max">
               {/* 배달중 (진행 구역) */}
-              <div className="w-[450px] flex flex-col bg-slate-900/50 border border-white/5 rounded-[32px] overflow-hidden shadow-xl">
+              <div className="w-full lg:w-[450px] min-h-[400px] flex flex-col bg-slate-900/50 border border-white/5 rounded-[32px] overflow-hidden shadow-xl">
                 <div className="p-6 border-b border-white/5 flex items-center justify-between bg-slate-900">
                   <h3 className="text-lg font-black text-white flex items-center gap-2">
                     <Truck className="w-5 h-5 text-amber-500" /> 배송 / 처리 중
@@ -194,7 +210,10 @@ const PartnerLauncher = () => {
                     <div key={order.id} className="bg-slate-800 border border-amber-500/20 rounded-2xl p-5 group transition-all hover:bg-slate-800/80">
                       <div className="flex justify-between items-center mb-4">
                         <div className="flex flex-col">
-                           <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full w-fit mb-2 bg-amber-500/20 text-amber-400">
+                           <span className={cn(
+                             "text-[10px] font-black uppercase px-2 py-0.5 rounded-full w-fit mb-2",
+                             order.status === 'Cooking' ? "bg-indigo-500/20 text-indigo-400" : "bg-amber-500/20 text-amber-400"
+                           )}>
                              {STATUS_MAP[order.status as keyof typeof STATUS_MAP]?.label}
                            </span>
                            <h4 className="text-lg font-bold text-white leading-none">Station {order.rooms?.room_number || '?'}</h4>
@@ -210,14 +229,41 @@ const PartnerLauncher = () => {
                          ? `${order.items[0].delivery_menus?.name}` 
                          : `${order.items[0].delivery_menus?.name} 외 ${order.items.length - 1}건`}
                       </div>
-                      
-                      {/* Simplified Status Button: Delivering -> Completed */}
-                      <button
-                        onClick={() => handleStatusUpdate(order.id, 'Completed')}
-                        className="w-full py-3 bg-blue-500 hover:bg-blue-400 text-white font-black rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2"
-                      >
-                        <CheckCircle className="w-4 h-4" /> 배달 완료 처리
-                      </button>
+                      <div className="flex gap-2">
+                        {order.status === 'Cooking' ? (
+                          <>
+                            <button
+                              onClick={() => handleStatusUpdate(order.id, 'Pending')}
+                              className="w-12 py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 font-black rounded-xl transition-transform active:scale-95 flex items-center justify-center shrink-0"
+                              title="신규 주문으로 되돌리기"
+                            >
+                              <Undo2 className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleStatusUpdate(order.id, 'Delivering')}
+                              className="flex-1 py-3 bg-indigo-500 hover:bg-indigo-400 text-white font-black rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2"
+                            >
+                              <Truck className="w-4 h-4" /> 배송 시작
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleStatusUpdate(order.id, 'Cooking')}
+                              className="w-12 py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 font-black rounded-xl transition-transform active:scale-95 flex items-center justify-center shrink-0"
+                              title="주문 확인(준비중)으로 되돌리기"
+                            >
+                              <Undo2 className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleStatusUpdate(order.id, 'Completed')}
+                              className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-slate-900 font-black rounded-xl transition-transform active:scale-95 flex items-center justify-center gap-2"
+                            >
+                              <CheckCircle className="w-4 h-4" /> 배달 완료
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   ))}
                   {activeOrders.length === 0 && (
@@ -227,7 +273,7 @@ const PartnerLauncher = () => {
               </div>
 
               {/* 배달 완료 (최근 기록) */}
-              <div className="w-[450px] flex flex-col bg-slate-900/20 border border-emerald-500/10 rounded-[32px] overflow-hidden opacity-80 hover:opacity-100 transition-opacity">
+              <div className="w-full lg:w-[450px] min-h-[300px] flex flex-col bg-slate-900/20 border border-emerald-500/10 rounded-[32px] overflow-hidden opacity-80 hover:opacity-100 transition-opacity">
                 <div className="p-6 border-b border-emerald-500/10 flex items-center justify-between">
                   <h3 className="text-lg font-black text-emerald-500/70 flex items-center gap-2">
                     <CheckCircle className="w-5 h-5" /> 최근 완료 내역
@@ -235,16 +281,25 @@ const PartnerLauncher = () => {
                 </div>
                 <div className="flex-1 overflow-y-auto p-6 space-y-3 custom-scrollbar">
                   {completedOrders.map(order => (
-                    <div key={order.id} className="flex justify-between items-center p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl">
+                    <div key={order.id} className="flex justify-between items-center p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl group relative overflow-hidden">
                        <div>
                          <span className="text-sm font-bold text-white block">Station {order.rooms?.room_number || '?'} 배달완료</span>
                          <span className="text-xs text-slate-500 block">
                            {order.items.length === 1 ? order.items[0].delivery_menus?.name : `${order.items[0].delivery_menus?.name} 외 ${order.items.length - 1}개`}
                          </span>
                        </div>
-                       <div className="text-right">
+                       <div className="text-right transition-opacity group-hover:opacity-0">
                          <span className="text-sm font-black text-emerald-500 block">{order.total_amount.toLocaleString()}원</span>
                          <span className="text-[10px] text-slate-500 font-bold block">{formatDateTime(order.created_at)}</span>
+                       </div>
+                       {/* Undo button revealed on hover */}
+                       <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <button
+                           onClick={() => handleStatusUpdate(order.id, 'Delivering')}
+                           className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold flex items-center gap-1 border border-white/10 shadow-xl transition-transform active:scale-95"
+                         >
+                           <Undo2 className="w-3 h-3" /> 되돌리기
+                         </button>
                        </div>
                     </div>
                   ))}
