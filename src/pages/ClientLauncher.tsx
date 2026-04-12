@@ -14,6 +14,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useTimer } from '../hooks/useTimer';
 import ChatWidget from '../components/client/ChatWidget';
+import SpaceBackground from '../components/client/SpaceBackground';
 
 const ClientLauncher = () => {
   const { user, member } = useAuth();
@@ -283,9 +284,8 @@ const ClientLauncher = () => {
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-100 overflow-hidden relative font-sans">
-      {/* Immersive Gaming Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A] to-[#1E1B4B]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#a855f71a,transparent_70%)]" />
+      {/* High-Quality Milky Way Background */}
+      <SpaceBackground />
       
       {/* Layered Content */}
       <div className="relative z-10 flex flex-col h-screen overflow-hidden">
