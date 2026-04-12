@@ -329,8 +329,11 @@ const ClientLauncher = () => {
                 </div>
              </div>
              
-             <div className="px-6 py-2 bg-purple-600 rounded-full text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(168,85,247,0.4)] animate-pulse cursor-pointer hover:bg-purple-500 transition-colors">
-                Support Available
+             <div className="flex items-center gap-4">
+                <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">System v1.0.0</span>
+                <div className="px-6 py-2 bg-purple-600 rounded-full text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(168,85,247,0.4)] animate-pulse cursor-pointer hover:bg-purple-500 transition-colors">
+                   Support Available
+                </div>
              </div>
           </div>
         </main>
